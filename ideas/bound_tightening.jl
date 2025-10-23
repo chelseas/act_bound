@@ -15,6 +15,7 @@ function tighten_bounds(net::NeuralVerification.Network, domain::Hyperrectangle)
     bounds_new = []
     # intra-layer tightening
     for (i, layer) in enumerate(net.layers) 
+        println("Tightening bounds for layer $i")
         bn_i = intra_layer_tighten(layer, bounds, i)
         push!(bounds_new, bn_i)
     end
@@ -38,8 +39,9 @@ function intra_layer_tighten(layer::NeuralVerification.Layer, bounds, i)
     n_nodes_i, n_nodes_im1 = size(layer.weights)
     unstable = unstable_neurons(bounds) # computes for whole network right now
     # only consider permutations of unstable neurons 
-    # A must be unstable, but not B
-    perms = [p for p in permutations(1:n_nodes_i, 2) if unstable[i+1][p[1]] ] # filter perms 
+    # Both A and B must be unstable
+    perms = [p for p in permutations(1:n_nodes_i, 2) if (unstable[i+1][p[1]] && unstable[i+1][p[2]])] # filter perms 
+    println("perms: $perms")
     new_bounds = []
     for perm in perms
         println("considering permutation $perm")
@@ -111,6 +113,9 @@ function solve_intra_layer_2(layer::NeuralVerification.Layer, bounds, i, combo)
     println("Orginal bounds for neuron B: [", low(bounds_i)[Bind], ",", high(bounds_i)[Bind])
     println("Bounds for neuron B when A is off: [$LB_of_B_when_A_off, $UB_of_B_when_A_off]")
     println("Bounds for neuron B when A is on: [$LB_of_B_when_A_on, $UB_of_B_when_A_on]")
+
+    # 
+
     return nothing 
 end
 
